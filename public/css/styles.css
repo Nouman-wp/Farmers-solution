@@ -1,4 +1,4 @@
-/* Reset & Global Styles */
+
 * {
     margin: 0;
     padding: 0;
@@ -10,7 +10,7 @@ body {
     background-color: #f8f9fa;
 }
 
-/* Navbar Styles */
+
 header {
     display: flex;
     justify-content: space-between;

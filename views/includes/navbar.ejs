@@ -1,22 +1,38 @@
 <header>
-    <div class="logo">🌾 Farmer's Marketplace</div>
+    <div class="logo">🌾 Farmer's Marketplace </div>
     <nav>
         <ul class="nav-links">
             <li><a href="/">Home</a></li>
             <li><a href="/buy">Buy Crops</a></li>
             <li><a href="/sell">Sell Crops</a></li>
             <li><a href="/prices">Market Prices</a></li>
-            <li><a href="/profile">Profile</a></li>
+            <% if (currentUser && currentUser.username) { %>
+
+                <li><a href="/profile">Profile</a></li> 
+            <% } else { %>
+                <li class="account-dropdown">
+                    <span class="account-toggle">
+                        <i class="fa fa-user"></i> Account <i class="fa fa-caret-down"></i>
+                    </span>
+                    <ul class="dropdown-content">
+                        <li><a href="/signup">Sign Up</a></li>
+                        <li><a href="/login">Login</a></li>
+                    </ul>
+                </li>
+            <% } %>
+            
         </ul>
+
         <div class="hamburger">
             <span></span>
             <span></span>
             <span></span>
         </div>
     </nav>
+    </nav>
 
     <style>
-        /* Reset & Global Styles */
+
         * {
             margin: 0;
             padding: 0;
@@ -28,7 +44,7 @@
             background-color: #f8f9fa;
         }
 
-        /* Navbar Styles */
+    
         header {
             display: flex;
             justify-content: space-between;
@@ -75,7 +91,7 @@
             color: #f39c12;
         }
 
-        /* Hamburger Menu */
+     
         .hamburger {
             display: none;
             flex-direction: column;
@@ -90,7 +106,7 @@
             transition: 0.3s;
         }
 
-        /* Mobile Styles */
+   
         @media screen and (max-width: 768px) {
             .nav-links {
                 display: none;
@@ -115,6 +131,51 @@
                 display: flex;
             }
         }
+        .account-dropdown {
+    position: relative;
+    cursor: pointer;
+}
+
+.account-dropdown .dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #34495e;
+    min-width: 170px;
+    right: 0;
+    top: 40px;
+    z-index: 999;
+    border-radius: 8px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+}
+
+.account-dropdown .dropdown-content li {
+    padding: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    list-style: none;
+}
+
+.account-dropdown .dropdown-content li a {
+    color: white;
+    text-decoration: none;
+    display: block;
+    
+}
+.account-dropdown .dropdown-content li:last-child {
+    border-bottom: none;
+}
+
+.account-dropdown .dropdown-content li a:hover {
+
+    background-color: #f39c12;
+    color: #2c3e50;
+    font-weight: 500;
+}
+
+.account-dropdown.active .dropdown-content {
+    display: block;
+}
+
     </style>
 
     <script>
@@ -126,5 +187,27 @@
                 navLinks.classList.toggle("active");
             });
         });
+
+        document.addEventListener("DOMContentLoaded", () => {
+        const hamburger = document.querySelector(".hamburger");
+        const navLinks = document.querySelector(".nav-links");
+        const accountDropdown = document.querySelector(".account-dropdown");
+
+        hamburger.addEventListener("click", () => {
+            navLinks.classList.toggle("active");
+        });
+        if (accountDropdown) {
+            const accountToggle = accountDropdown.querySelector(".account-toggle");
+            accountToggle.addEventListener("click", () => {
+                accountDropdown.classList.toggle("active");
+            });
+
+            document.addEventListener("click", (e) => {
+                if (!accountDropdown.contains(e.target)) {
+                    accountDropdown.classList.remove("active");
+                }
+            });
+        }
+    });
     </script>
 </header>

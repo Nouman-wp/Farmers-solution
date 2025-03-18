@@ -7,6 +7,10 @@ const ejsMate = require("ejs-mate");
 const session = require("express-session");
 const flash = require("connect-flash");
 const ExpressError = require("./utils/ExpressError");
+const { data: listings } = require("./ini/data");
+const passport = require("passport");
+const LocalStrategy = require("passport-local");
+const User = require("./models/user");
 
 const MONGO_URL = "mongodb://127.0.0.1:27017/farmers";
 
@@ -44,8 +48,16 @@ const sessionOptions = {
 app.use(session(sessionOptions));
 app.use(flash());
 
-// Middleware to pass flash messages to all views
+// Passport.js setup (order is important)
+app.use(passport.initialize());
+app.use(passport.session());
+passport.use(new LocalStrategy(User.authenticate()));
+passport.serializeUser(User.serializeUser());
+passport.deserializeUser(User.deserializeUser());
+
+// Store current user and flash messages in all templates
 app.use((req, res, next) => {
+    res.locals.currentUser = req.user || null;
     res.locals.success = req.flash("success");
     res.locals.error = req.flash("error");
     next();
@@ -56,7 +68,56 @@ app.get("/", (req, res) => {
     res.render("home.ejs");
 });
 
-// Catch-all route for undefined paths
+app.get('/buy', (req, res) => {
+    res.render('buy.ejs', { listings });
+});
+
+app.get('/profile', isLoggedIn, (req, res) => {
+    res.render('profile'); // profile.ejs
+});
+
+app.get('/signup', (req, res) => {
+    res.render('signup.ejs');
+});
+
+app.post('/signup', async (req, res, next) => {
+    try {
+        const { username, email, password, profileImage } = req.body;
+        const user = new User({ username, email, profileImage: profileImage || undefined });
+        const registeredUser = await User.register(user, password);
+        req.login(registeredUser, (err) => {
+            if (err) return next(err);
+            req.flash('success', 'Welcome to Farmer\'s Marketplace!');
+            res.redirect('/');
+        });
+    } catch (e) {
+        console.log("Signup Error:", e);  // helpful for debugging
+        req.flash('error', e.message);
+        res.redirect('/signup');
+    }
+});
+
+
+
+app.get('/login', (req, res) => {
+    res.render('login.ejs');
+});
+
+app.post('/login', passport.authenticate('local', {
+    failureFlash: true,
+    failureRedirect: '/login'
+}), (req, res) => {
+    req.flash('success', 'Welcome back!');
+    res.redirect('/');
+});
+
+// Authentication check middleware
+function isLoggedIn(req, res, next) {
+    if (req.isAuthenticated()) return next();
+    res.redirect('/login');
+}
+
+// Catch all route for undefined paths
 app.all("*", (req, res, next) => {
     next(new ExpressError(404, "Page Not Found"));
 });
@@ -69,5 +130,5 @@ app.use((err, req, res, next) => {
 
 // Start server
 app.listen(3000, () => {
-    console.log("Server is running on port 3000");
+    console.log("Server is running on port http://localhost:3000");
 });
